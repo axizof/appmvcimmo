@@ -1,0 +1,24 @@
+SELECT L.id_logement, 
+       P.chemin_photo AS premiere_image, 
+       L.id_commercial,
+       L.nom_logement, 
+       L.nb_pieces, 
+       L.rue_logement, 
+       L.cp_logement, 
+       L.ville_logement
+FROM Logements L
+LEFT JOIN (
+    SELECT id_logement, MIN(id_photo) AS id_photo
+    FROM Photos
+    GROUP BY id_logement
+) AS PremPhotos ON L.id_logement = PremPhotos.id_logement
+LEFT JOIN Photos P ON PremPhotos.id_photo = P.id_photo
+WHERE 
+    (
+        L.id_logement IN (
+            SELECT DISTINCT LP.id_logement
+            FROM LogementPeriode LP
+            INNER JOIN Reservation R ON LP.id_logement = R.id_logement
+            WHERE CURDATE() BETWEEN LP.date_debut AND LP.date_fin
+        )
+    )
